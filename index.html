@@ -381,10 +381,10 @@
                 if (!isSolid && !isHovered) return null;
 
                 const startX = parent.x;
-                const startY = parent.y + 96; 
+                const startY = parent.y; 
                 
                 const endX = node.x;
-                const endY = node.y;
+                const endY = node.y + 96;
 
                 return (
                     <line 
@@ -410,9 +410,7 @@
         const RefreshLayerBtn = ({ onClick, yPos, xPos, isRoot = false }) => (
             <div 
                 className="absolute transform -translate-x-1/2 z-40 group"
-                style={{ 
-                    top: yPos, 
-                    left: xPos !== undefined ? xPos : '50%' 
+                style={{ left: node.x, top: node.y }}
                 }}
             >
                 <button 
