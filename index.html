@@ -371,43 +371,52 @@
 
         // --- Component: Smart Connections ---
         const Connections = ({ nodes, dugIds, hoveredNodeId }) => {
-            const getNodeHeight = (nodeId) => {
-                if (hoveredNodeId === nodeId) return 320; // matches hovered size (~w-80 + padding + content)
-                return 96; // default h-24
-            };
+            const paths = useMemo(() => {
+                return nodes
+                    .filter(node => node.parentId)
+                    .map(childNode => {
+                        const parent = nodes.find(p => p.id === childNode.parentId);
+                        if (!parent) return null;
         
-            const paths = nodes
-                .filter(n => n.parentId)
-                .map(node => {
-                    const parent = nodes.find(p => p.id === node.parentId);
-                    if (!parent) return null;
+                        const isDug = dugIds.has(childNode.id);
+                        const isAnyHovered = hoveredNodeId === childNode.id || hoveredNodeId === parent.id;
         
-                    const isDug = dugIds.has(node.id);
-                    const isAnyHovered = hoveredNodeId === node.id || hoveredNodeId === parent.id;
+                        // Only draw if dug OR one of the two nodes is hovered
+                        if (!isDug && !isAnyHovered) return null;
         
-                    if (!isDug && !isAnyHovered) return null;
+                        // Dynamic width based on hover state
+                        const parentWidth = hoveredNodeId === parent.id ? 320 : 192;   // w-80 ≈ 320px, w-48 ≈ 192px
+                        const childWidth = hoveredNodeId === childNode.id ? 320 : 192;
         
-                    const parentHeight = getNodeHeight(parent.id);
-                    const startY = parent.y + parentHeight / 2 + 48; // +48 offsets to bottom of card
+                        const startX = parent.x;                    // already centered via -translate-x-1/2
+                        const endX = childNode.x;
         
-                    return (
-                        <line
-                            key={`conn-${node.id}`}
-                            x1={parent.x}
-                            y1={parent.y + parentHeight} // now comes from actual bottom
-                            x2={node.x}
-                            y2={node.y + 48} // connect to top-center of child
-                            stroke="white"
-                            strokeWidth={isDug ? "3" : "1.8"}
-                            strokeDasharray={isDug ? "none" : "8,8"}
-                            opacity={isDug ? 0.9 : 0.5}
-                            className="transition-all duration-500 ease-out"
-                        />
-                    );
-                });
+                        const startY = parent.y + (hoveredNodeId === parent.id ? 300 : 96);  // bottom of parent
+                        const endY = childNode.y;                                                // top of child
+        
+                        return (
+                            <line
+                                key={`${parent.id}-${childNode.id}`}
+                                x1={startX}
+                                y1={startY}
+                                x2={endX}
+                                y2={endY}
+                                stroke="white"
+                                strokeWidth={isDug ? 3 : 2}
+                                strokeDasharray={isDug ? "none" : "10,6"}
+                                opacity={isDug ? 0.9 : 0.45}
+                                className="transition-all duration-500 ease-out"
+                                pointerEvents="none"
+                            />
+                        );
+                    });
+            }, [nodes, dugIds, hoveredNodeId]);
         
             return (
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
+                <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                    style={{ zIndex: 5 }}
+                >
                     {paths}
                 </svg>
             );
