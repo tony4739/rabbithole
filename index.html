@@ -371,36 +371,43 @@
 
         // --- Component: Smart Connections ---
         const Connections = ({ nodes, dugIds, hoveredNodeId }) => {
-            const paths = nodes.filter(n => n.parentId).map(node => {
-                const parent = nodes.find(p => p.id === node.parentId);
-                if (!parent) return null;
-
-                const isSolid = dugIds.has(node.id);
-                const isHovered = hoveredNodeId === node.id;
-
-                if (!isSolid && !isHovered) return null;
-
-                const startX = parent.x;
-                const startY = parent.y + 96; 
-                
-                const endX = node.x;
-                const endY = node.y;
-
-                return (
-                    <line 
-                        key={`conn-${node.id}`}
-                        x1={startX} y1={startY}
-                        x2={endX} y2={endY}
-                        stroke="white"
-                        strokeWidth={isSolid ? "2" : "1.5"}
-                        strokeDasharray={isSolid ? "0" : "8,8"}
-                        opacity={isSolid ? "0.8" : "0.5"}
-                    />
-                );
-            });
-
+            const getNodeHeight = (nodeId) => {
+                if (hoveredNodeId === nodeId) return 320; // matches hovered size (~w-80 + padding + content)
+                return 96; // default h-24
+            };
+        
+            const paths = nodes
+                .filter(n => n.parentId)
+                .map(node => {
+                    const parent = nodes.find(p => p.id === node.parentId);
+                    if (!parent) return null;
+        
+                    const isDug = dugIds.has(node.id);
+                    const isAnyHovered = hoveredNodeId === node.id || hoveredNodeId === parent.id;
+        
+                    if (!isDug && !isAnyHovered) return null;
+        
+                    const parentHeight = getNodeHeight(parent.id);
+                    const startY = parent.y + parentHeight / 2 + 48; // +48 offsets to bottom of card
+        
+                    return (
+                        <line
+                            key={`conn-${node.id}`}
+                            x1={parent.x}
+                            y1={parent.y + parentHeight} // now comes from actual bottom
+                            x2={node.x}
+                            y2={node.y + 48} // connect to top-center of child
+                            stroke="white"
+                            strokeWidth={isDug ? "3" : "1.8"}
+                            strokeDasharray={isDug ? "none" : "8,8"}
+                            opacity={isDug ? 0.9 : 0.5}
+                            className="transition-all duration-500 ease-out"
+                        />
+                    );
+                });
+        
             return (
-                <svg className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-visible" style={{ zIndex: 0 }}>
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
                     {paths}
                 </svg>
             );
