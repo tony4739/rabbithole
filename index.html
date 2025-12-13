@@ -603,15 +603,16 @@
                     selectedLinks = [...relevant, ...random];
                 }
         
-                const maxSpread = 280; 
+                const screenWidth = window.innerWidth;
+                const maxSpread = Math.min(280, screenWidth / (count + 1)); // Responsive: tighter on small screens
                 const totalWidth = (selectedLinks.length - 1) * maxSpread;
                 const startX = parent.x - (totalWidth / 2);
-                const childY = parent.y + 350;
+                const childY = parent.y + 400; // Increased from 350 for more breathing room
         
                 return selectedLinks.map((title, i) => ({
                     id: `${parent.id}-child-${i}-${title.replace(/\s/g,'')}`,
                     title,
-                    x: startX + (i * maxSpread),
+                    x: startX + (i * maxSpread) + (Math.random() - 0.5) * 20 * (chaosVal / 100), // Slight random jiggle for chaos
                     y: childY,
                     parentId: parent.id,
                     depth: parent.depth + 1,
