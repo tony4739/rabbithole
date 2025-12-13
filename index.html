@@ -515,50 +515,55 @@
                     cancelAnimationFrame(animationFrameId);
                     animationFrameId = requestAnimationFrame(() => {
                         const viewportCenterY = window.scrollY + (window.innerHeight / 2);
+            
                         if (activePath.length === 0) {
                             setCameraX(0);
                             return;
                         }
-
-                    let targetX = 0;
-                    const firstNode = activePath[0];
-                    const lastNode = activePath[activePath.length - 1];
-                    
-                    if (viewportCenterY < firstNode.y) {
-                        targetX = firstNode.x; 
-                    } else if (viewportCenterY > lastNode.y + 96) {
-                         targetX = lastNode.x;
-                    } else {
-                        let foundSegment = false;
-                        for (let i = 0; i < activePath.length - 1; i++) {
-                            const n1 = activePath[i];
-                            const n2 = activePath[i+1];
-                            const n1Bottom = n1.y + 96;
-                            
-                            if (viewportCenterY >= n1.y && viewportCenterY <= n1Bottom) {
-                                targetX = n1.x;
-                                foundSegment = true;
-                                break;
-                            } else if (viewportCenterY > n1Bottom && viewportCenterY < n2.y) {
-                                const progress = (viewportCenterY - n1Bottom) / (n2.y - n1Bottom);
-                                targetX = n1.x + (n2.x - n1.x) * progress;
-                                foundSegment = true;
-                                break;
+            
+                        let targetX = 0;
+                        const firstNode = activePath[0];
+                        const lastNode = activePath[activePath.length - 1];
+            
+                        if (viewportCenterY < firstNode.y) {
+                            targetX = firstNode.x;
+                        } else if (viewportCenterY > lastNode.y + 96) {
+                            targetX = lastNode.x;
+                        } else {
+                            let foundSegment = false;
+                            for (let i = 0; i < activePath.length - 1; i++) {
+                                const n1 = activePath[i];
+                                const n2 = activePath[i + 1];
+                                const n1Bottom = n1.y + 96;
+            
+                                if (viewportCenterY >= n1.y && viewportCenterY <= n1Bottom) {
+                                    targetX = n1.x;
+                                    foundSegment = true;
+                                    break;
+                                } else if (viewportCenterY > n1Bottom && viewportCenterY < n2.y) {
+                                    const progress = (viewportCenterY - n1Bottom) / (n2.y - n1Bottom);
+                                    targetX = n1.x + (n2.x - n1.x) * progress;
+                                    foundSegment = true;
+                                    break;
+                                }
+                            }
+                            if (!foundSegment) {
+                                targetX = lastNode.x;
                             }
                         }
-                        if (!foundSegment) {
-                            targetX = lastNode.x;
-                        }
-                    }
-                    
-                    const screenCenter = window.innerWidth / 2;
-                    setCameraX(screenCenter - targetX);
+            
+                        const screenCenter = window.innerWidth / 2;
+                        setCameraX(screenCenter - targetX);
+                    });
                 };
-
+            
                 window.addEventListener('scroll', handleScroll, { passive: true });
+            
                 return () => {
                     window.removeEventListener('scroll', handleScroll);
-                    cancelAnimationFrame(animationFrameId);
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
                 };
             }, [activePath]);
 
