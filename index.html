@@ -510,13 +510,15 @@
             }, [activeParentId, nodes]);
 
             useEffect(() => {
+                let animationFrameId;
                 const handleScroll = () => {
-                    const viewportCenterY = window.scrollY + (window.innerHeight / 2);
-                    
-                    if (activePath.length === 0) {
-                        setCameraX(0);
-                        return;
-                    }
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = requestAnimationFrame(() => {
+                        const viewportCenterY = window.scrollY + (window.innerHeight / 2);
+                        if (activePath.length === 0) {
+                            setCameraX(0);
+                            return;
+                        }
 
                     let targetX = 0;
                     const firstNode = activePath[0];
@@ -553,10 +555,12 @@
                     setCameraX(screenCenter - targetX);
                 };
 
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                return () => {
+                    window.removeEventListener('scroll', handleScroll);
+                    cancelAnimationFrame(animationFrameId);
+                };
             }, [activePath]);
-
 
             const initializeBurrow = (startSubject = null) => {
                 const initialSubjects = startSubject ? [startSubject] : getRandomSubjects(3);
