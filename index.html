@@ -553,20 +553,20 @@
             }, [activePath]);
 
             const initializeBurrow = (startSubject = null) => {
-                const initialSubjects = startSubject ? [startSubject] : getRandomSubjects(3);
-                
-                const screenWidth = window.innerWidth;
-                const spacing = Math.min(250, (screenWidth * 0.9) / initialSubjects.length);
-                const startXOffset = (screenWidth - ((initialSubjects.length - 1) * spacing)) / 2;
-                const initialSubjects = startSubject ? [startSubject] : getRandomSubjects(holeCount);
-                const newNodes = initialSubjects.map((title, i) => ({
-                    id: `root-${Date.now()}-${i}`,
-                    title,
-                    x: startSubject ? screenWidth / 2 : startXOffset + (i * spacing), 
-                    y: window.innerHeight * 0.4,   // instead of fixed 200 or  window.innerHeight/3,
-                    parentId: null,
-                    depth: 0
-                }));
+                const count = holeCount; // Use current holeCount setting
+                const initialSubjects = startSubject ? [startSubject] : getRandomSubjects(count);
+            
+                const newNodes = initialSubjects.map((title, i) => {
+                    const offset = (i - (initialSubjects.length - 1) / 2) * 320; // Symmetric spread
+                    return {
+                        id: `root-${Date.now()}-${i}`,
+                        title,
+                        x: window.innerWidth / 2 + offset,
+                        y: window.innerHeight * 0.4,
+                        parentId: null,
+                        depth: 0
+                    };
+                });
                 
                 setNodes(newNodes);
                 setActiveParentId(null);
