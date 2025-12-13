@@ -331,14 +331,18 @@
                     onMouseLeave={handleMouseLeave}
                 >
                     <div 
-                        className={`
-                            bg-black border-2 border-white p-4 relative transition-all duration-300
-                            ${hovered ? 'w-80 h-64 z-50 -translate-y-4 shadow-2xl scale-100' : 'w-48 h-24 flex items-center justify-center hover:scale-105'} // Changed min-h-64 to h-64 for fixed height
-                        `}
-                        style={{
-                        transform: !hovered && scale < 1 ? `scale(${scale})` : undefined
-                        }}
-                    >
+                        <div
+                            className={`
+                                bg-black border-2 border-white p-4 relative transition-all duration-300 rounded-lg
+                                ${hovered 
+                                    ? 'w-72 h-56 -translate-y-4 shadow-2xl'   // Smaller expanded: was w-80 h-64
+                                    : 'w-40 h-20 flex items-center justify-center hover:scale-110'  // Smaller default: was w-48 h-24
+                                }
+                            `}
+                            style={{
+                                transform: hovered ? undefined : undefined  // We handle translate in class above
+                            }}
+                        >
                         <h3 className={`text-center font-bold text-white ${hovered ? 'text-xl mb-4 border-b pb-2 border-gray-700' : 'text-sm line-clamp-2'}`}>
                             {node.title}
                         </h3>
@@ -598,9 +602,9 @@
                 const maxSpread = Math.min(280, screenWidth / (count + 1)); // Responsive: tighter on small screens
                 const totalWidth = (selectedLinks.length - 1) * maxSpread;
                 const startX = parent.x - (totalWidth / 2);
-                const childY = parent.y + 200; // Increased from 350 for more breathing room
-                if (childY + 200 > maxHeight) {  // reduced from +600
-                    setMaxHeight(childY + 400);
+                const childY = parent.y + 400; // Increased from 350 for more breathing room
+                if (childY + 300 > maxHeight) {  // reduced from +600
+                    setMaxHeight(childY + 500);
                 }
                 
                 return selectedLinks.map((title, i) => ({
