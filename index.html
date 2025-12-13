@@ -371,56 +371,60 @@
 
         // --- Component: Smart Connections ---
         const Connections = ({ nodes, dugIds, hoveredNodeId }) => {
-            const paths = useMemo(() => {
-                return nodes
-                    .filter(node => node.parentId)
-                    .map(childNode => {
-                        const parent = nodes.find(p => p.id === childNode.parentId);
-                        if (!parent) return null;
-        
-                        const isDug = dugIds.has(childNode.id);
-                        const isAnyHovered = hoveredNodeId === childNode.id || hoveredNodeId === parent.id;
-        
-                        // Only draw if dug OR one of the two nodes is hovered
-                        if (!isDug && !isAnyHovered) return null;
-        
-                        // Dynamic width based on hover state
-                        const parentWidth = hoveredNodeId === parent.id ? 320 : 192;   // w-80 ≈ 320px, w-48 ≈ 192px
-                        const childWidth = hoveredNodeId === childNode.id ? 320 : 192;
-        
-                        const startX = parent.x;                    // already centered via -translate-x-1/2
-                        const endX = childNode.x;
-        
-                        const startY = parent.y + (hoveredNodeId === parent.id ? 300 : 96);  // bottom of parent
-                        const endY = childNode.y;                                                // top of child
-        
-                        return (
-                            <line
-                                key={`${parent.id}-${childNode.id}`}
-                                x1={startX}
-                                y1={startY}
-                                x2={endX}
-                                y2={endY}
-                                stroke="white"
-                                strokeWidth={isDug ? 3 : 2}
-                                strokeDasharray={isDug ? "none" : "10,6"}
-                                opacity={isDug ? 0.9 : 0.45}
-                                className="transition-all duration-500 ease-out"
-                                pointerEvents="none"
-                            />
-                        );
-                    });
-            }, [nodes, dugIds, hoveredNodeId]);
-        
-            return (
-                <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
-                    style={{ zIndex: 5 }}
-                >
-                    {paths}
-                </svg>
-            );
-        };
+        const NON_HOVERED_HEIGHT = 96; // Matches h-24 (6rem = 96px assuming 16px rem)
+        const HOVERED_HEIGHT = 256; // Matches h-64 (16rem = 256px)
+        const HOVER_LIFT = -16; // Matches -translate-y-4 ( -1rem = -16px)
+    
+        const paths = useMemo(() => {
+            return nodes
+                .filter(node => node.parentId)
+                .map(childNode => {
+                    const parent = nodes.find(p => p.id === childNode.parentId);
+                    if (!parent) return null;
+    
+                    const isDug = dugIds.has(childNode.id);
+                    const isParentHovered = hoveredNodeId === parent.id;
+                    const isChildHovered = hoveredNodeId === childNode.id;
+                    const isAnyHovered = isParentHovered || isChildHovered;
+    
+                    if (!isDug && !isAnyHovered) return null;
+    
+                    const parentHeight = isParentHovered ? HOVERED_HEIGHT : NON_HOVERED_HEIGHT;
+                    const parentLift = isParentHovered ? HOVER_LIFT : 0;
+                    const childLift = isChildHovered ? HOVER_LIFT : 0;
+    
+                    const startX = parent.x;
+                    const startY = parent.y + parentLift + parentHeight;
+                    const endX = childNode.x;
+                    const endY = childNode.y + childLift;
+    
+                    return (
+                        <line
+                            key={`${parent.id}-${childNode.id}`}
+                            x1={startX}
+                            y1={startY}
+                            x2={endX}
+                            y2={endY}
+                            stroke="white"
+                            strokeWidth={isDug ? 3 : 2}
+                            strokeDasharray={isDug ? "none" : "10,6"}
+                            opacity={isDug ? 0.9 : 0.45}
+                            className="transition-all duration-300 ease-out" // Smoother transition
+                            pointerEvents="none"
+                        />
+                    );
+                });
+        }, [nodes, dugIds, hoveredNodeId]);
+    
+        return (
+            <svg
+                className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+                style={{ zIndex: 5 }}
+            >
+                {paths}
+            </svg>
+        );
+    };
 
         // --- Component: Refresh Button ---
         const RefreshLayerBtn = ({ onClick, yPos, xPos, isRoot = false }) => (
