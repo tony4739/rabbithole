@@ -320,10 +320,10 @@
             };
 
             return (
-                <div 
-                    className="absolute transform -translate-x-1/2 node-enter"
-                    style={{ 
-                        left: node.x, 
+                <div
+                    className="absolute transform -translate-x-1/2 -translate-y-1/2 node-enter"
+                    style={{
+                        left: node.x,
                         top: node.y,
                         zIndex: hovered ? 50 : 10
                     }}
@@ -371,10 +371,6 @@
 
         // --- Component: Smart Connections ---
         const Connections = ({ nodes, dugIds, hoveredNodeId }) => {
-        const NON_HOVERED_HEIGHT = 96; // Matches h-24 (6rem = 96px assuming 16px rem)
-        const HOVERED_HEIGHT = 256; // Matches h-64 (16rem = 256px)
-        const HOVER_LIFT = -16; // Matches -translate-y-4 ( -1rem = -16px)
-    
         const paths = useMemo(() => {
             return nodes
                 .filter(node => node.parentId)
@@ -383,33 +379,22 @@
                     if (!parent) return null;
     
                     const isDug = dugIds.has(childNode.id);
-                    const isParentHovered = hoveredNodeId === parent.id;
-                    const isChildHovered = hoveredNodeId === childNode.id;
-                    const isAnyHovered = isParentHovered || isChildHovered;
+                    const isAnyHovered = hoveredNodeId === childNode.id || hoveredNodeId === parent.id;
     
                     if (!isDug && !isAnyHovered) return null;
-    
-                    const parentHeight = isParentHovered ? HOVERED_HEIGHT : NON_HOVERED_HEIGHT;
-                    const parentLift = isParentHovered ? HOVER_LIFT : 0;
-                    const childLift = isChildHovered ? HOVER_LIFT : 0;
-    
-                    const startX = parent.x;
-                    const startY = parent.y + parentLift + parentHeight;
-                    const endX = childNode.x;
-                    const endY = childNode.y + childLift;
     
                     return (
                         <line
                             key={`${parent.id}-${childNode.id}`}
-                            x1={startX}
-                            y1={startY}
-                            x2={endX}
-                            y2={endY}
+                            x1={parent.x}
+                            y1={parent.y}
+                            x2={childNode.x}
+                            y2={childNode.y}
                             stroke="white"
                             strokeWidth={isDug ? 3 : 2}
                             strokeDasharray={isDug ? "none" : "10,6"}
                             opacity={isDug ? 0.9 : 0.45}
-                            className="transition-all duration-300 ease-out" // Smoother transition
+                            className="transition-all duration-500 ease-out"
                             pointerEvents="none"
                         />
                     );
@@ -417,10 +402,7 @@
         }, [nodes, dugIds, hoveredNodeId]);
     
         return (
-            <svg
-                className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
-                style={{ zIndex: 5 }}
-            >
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" style={{ zIndex: 5 }}>
                 {paths}
             </svg>
         );
@@ -616,8 +598,11 @@
                 const maxSpread = Math.min(280, screenWidth / (count + 1)); // Responsive: tighter on small screens
                 const totalWidth = (selectedLinks.length - 1) * maxSpread;
                 const startX = parent.x - (totalWidth / 2);
-                const childY = parent.y + 400; // Increased from 350 for more breathing room
-        
+                const childY = parent.y + 200; // Increased from 350 for more breathing room
+                if (childY + 200 > maxHeight) {  // reduced from +600
+                    setMaxHeight(childY + 400);
+                }
+                
                 return selectedLinks.map((title, i) => ({
                     id: `${parent.id}-child-${i}-${title.replace(/\s/g,'')}`,
                     title,
