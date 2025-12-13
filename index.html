@@ -558,12 +558,12 @@
                 const screenWidth = window.innerWidth;
                 const spacing = Math.min(250, (screenWidth * 0.9) / initialSubjects.length);
                 const startXOffset = (screenWidth - ((initialSubjects.length - 1) * spacing)) / 2;
-
+                const initialSubjects = startSubject ? [startSubject] : getRandomSubjects(holeCount);
                 const newNodes = initialSubjects.map((title, i) => ({
                     id: `root-${Date.now()}-${i}`,
                     title,
                     x: startSubject ? screenWidth / 2 : startXOffset + (i * spacing), 
-                    y: 200,
+                    y: window.innerHeight * 0.4,   // instead of fixed 200 or  window.innerHeight/3,
                     parentId: null,
                     depth: 0
                 }));
@@ -597,13 +597,18 @@
                     selectedLinks = [...relevant, ...random];
                 }
         
-                const screenWidth = window.innerWidth;
-                const maxSpread = Math.min(280, screenWidth / (count + 1)); // Responsive: tighter on small screens
+                const minSpread = 260;                                      // Minimum distance between child centers (prevents squishing)
+                const idealSpread = window.innerWidth * 0.7 / (selectedLinks.length + 1);  // Uses ~70% of viewport width
+                const maxSpread = Math.max(minSpread, idealSpread);          // Never too tight, but scales down on small screens
+            
                 const totalWidth = (selectedLinks.length - 1) * maxSpread;
-                const startX = parent.x - (totalWidth / 2);
-                const childY = parent.y + 400; // Increased from 350 for more breathing room
-                if (childY + 300 > maxHeight) {  // reduced from +600
-                    setMaxHeight(childY + 500);
+                const startX = parent.x - (totalWidth / 2);                  // Exact centering under the parent node
+            
+                const childY = parent.y + 280;                               // Comfortable vertical gap between layer centers
+            
+                // Extend page height if needed
+                if (childY + 400 > maxHeight) {
+                    setMaxHeight(childY + 600);
                 }
                 
                 return selectedLinks.map((title, i) => ({
